@@ -1,6 +1,8 @@
 "-------------------------------------------------------------------------------
 " Basics
 "-------------------------------------------------------------------------------
+" refer http://d.hatena.ne.jp/yuroyoro/20101104/1288879591
+
 let mapleader = ","              " キーマップリーダー
 set scrolloff=5                  " スクロール時の余白確保
 set textwidth=0                  " 一行に長い文章を書いていても自動折り返しをしない
@@ -37,6 +39,68 @@ highlight CursorLine ctermbg=black guibg=black
 " ;でコマンド入力( change from ; to :)
 noremap ; :
 noremap : ;
+
+" pathogenでftdetectなどをloadさせるために一度ファイルタイプ判定をoff
+filetype off
+syntax off
+filetype indent off
+" pathogen.vimによってbundle配下のpluginをpathに加える
+call pathogen#runtime_append_all_bundles()
+" help tags は未使用？なのtでとりあえずコメントアウト 09/07/2011
+"call pathogen#helptags()
+"set helpfile=$VIMRUNTIME/doc/help.txt
+" ファイルタイプ判定をon
+filetype plugin on
+
+"-------------------------------------------------------------------------------
+" ステータスライン StatusLine
+"-------------------------------------------------------------------------------
+set laststatus=2 " 常にステータスラインを表示
+
+" カーソルが何行目の何列目に置かれているかを表示する
+set ruler
+
+" ステータスラインに文字コードと改行文字を表示する
+if winwidth(0) >= 120
+  set statusline=%<[%n]%m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).':'.&ff.']'}%y\ %F%=[%{GetB()}]\ %l,%c%V%8P
+else
+  set statusline=%<[%n]%m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).':'.&ff.']'}%y\ %f%=[%{GetB()}]\ %l,%c%V%8P
+endif
+
+" 入力モード時、ステータスラインのカラーを変更
+augroup InsertHook
+autocmd!
+autocmd InsertEnter * highlight StatusLine guifg=#ccdc90 guibg=#2E4340
+autocmd InsertLeave * highlight StatusLine guifg=#2E4340 guibg=#ccdc90
+augroup END
+
+function! GetB()
+  let c = matchstr(getline('.'),  '.',  col('.') - 1)
+  let c = iconv(c,  &enc,  &fenc)
+  return String2Hex(c)
+endfunction
+" help eval-examples
+" " The function Nr2Hex() returns the Hex string of a number.
+func! Nr2Hex(nr)
+  let n = a:nr
+  let r = ""
+  while n
+    let r = '0123456789ABCDEF'[n % 16] . r
+    let n = n / 16
+  endwhile
+  return r
+endfunc
+" The function String2Hex() converts each character in a string to a two
+" character Hex string.
+func! String2Hex(str)
+  let out = ''
+  let ix = 0
+  while ix < strlen(a:str)
+    let out = out . Nr2Hex(char2nr(a:str[ix]))
+    let ix = ix + 1
+  endwhile
+  return out
+endfunc
 
 "-------------------------------------------------------------------------------
 " Apperance
@@ -348,8 +412,6 @@ inoremap <expr> ,dt strftime('%H:%M:%S')
 "-------------------------------------------------------------------------------
 
 " -----------------------------------------------------------------------
-" vim-pathogen
-" ref http://tech.kayac.com/archive/vim-plugin-coding.html
+"
 " ------------------------------------------------------------------------
-call pathogen#runtime_append_all_bundles()
 
